@@ -24,3 +24,7 @@ Acquisition of video given by mouse press and release button events
 * Windows virtual keys
   * http://cherrytree.at/misc/vk.htm
   * https://www.passmark.com/products/keytest.htm
+
+## Acquisition from Leap Motion
+* https://developer-archive.leapmotion.com/documentation/python/index.html
+* https://developer-archive.leapmotion.com/documentation/python/devguide/Sample_Tutorial.html
