@@ -6,6 +6,8 @@ Created on Tue Sep  11 10:52:32 2018
 """
 import cv2
 import os
+import Leap
+
 
 def fcount(path): # Counter of subdirectories
     count1 = 0
@@ -18,7 +20,7 @@ msg = "Indique el gesto: eg = 0, 1, 2,..."
 gesto = input(msg)
 
 root = os.getcwd()
-directory = root + '\\Data/' + gesto # gesture directory
+directory = root + '\\Data/' + str(gesto) # gesture directory
 
 if not os.path.exists(directory):
     os.mkdir(directory)
@@ -50,6 +52,14 @@ def on_mouse(event,x,y,flags,params):
         print("Released")
         traj_moments[num_frames-1] = -1 # End of movement
         title = "--"
+ 
+    
+# LEAP
+controller = Leap.Controller()
+
+while controller.is_connected:
+    frame = controller.frame()
+    
     
 cap = cv2.VideoCapture(0)
 
