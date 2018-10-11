@@ -10,11 +10,28 @@ Capturing data from Leap Motion:
     - When finished, press the right button
 """
 
-import Leap, sys, os, ctypes, struct
+import Leap
+import sys
+import os
+import ctypes
+import struct
+import numpy as np
+import cv2
+
 from pynput import mouse
+ 
+
+## VARIABLES
+
+frames = []
+data_frames = []
+size_frames = []
+pressed_moments = []
+pressing = 0 
 
 
 ## AUXILIAR FUNCTIONS
+
 def fcount(path): # Counter of subdirectories
     count1 = 0
     for root, dirs, files in os.walk(path):
@@ -38,15 +55,6 @@ def on_click(x, y, button, pressed): # Mouse click
 
 def on_scroll(x, y, dx, dy): # Mouse scroll
     pass
-    
-
-## VARIABLES
-    
-last_frame = []
-data_frames = []
-size_frames = []
-pressed_moments = []
-pressing = 0 
 
 
 ## CREATE DIRECTORIES
@@ -55,13 +63,13 @@ msg = "Indique el gesto: eg = 0, 1, 2,..."
 gesto = input(msg)
 
 root = os.getcwd()
-directory = root + '\\Data/gesture' + str(gesto) # gesture directory
+directory = root + '\\RecordedData/gesture_' + str(gesto) # Gesture directory
 
 if not os.path.exists(directory):
     os.mkdir(directory)
 
 rep = fcount(directory)
-directory = directory + '/user' + str(rep) # Repetition/user directory
+directory = directory + '/session_' + str(rep).zfill(3) # Session directory
 
 if not os.path.exists(directory):
     os.mkdir(directory)
@@ -87,30 +95,26 @@ class LeapMotionListener(Leap.Listener):
         print("Exited")
         
     def on_frame(self, controller):
-        global last_frame
         frame = controller.frame()
-        last_frame = frame
+        frames.append(frame)
         data_frames.append(frame.serialize[0])
         size_frames.append(frame.serialize[1])
         pressed_moments.append(pressing)
-        
-        """print("Frame read")
-        for hand in frame.hands:
-            for finger in hand.fingers:
-                if finger.type == 1:
-                    print("Index position: " + str(finger.tip_position))"""
-                    
-                    
+  
+    
+## MAIN FUNCTION
+                
 def main():
     
     controller = Leap.Controller()
     listener = LeapMotionListener()  
     controller.add_listener(listener)
+    controller.set_policy(Leap.Controller.POLICY_IMAGES)
     
-    print("Scroll to quit...")
+    print("Press right button to quit...")
     
     try:
-        # Mouse
+        # MOUSE LISTENING
         with mouse.Listener(
                 on_move=on_move,
                 on_click=on_click,
@@ -125,7 +129,7 @@ def main():
         
         controller.remove_listener(listener) #Stop capturing data
         
-        # Save frames
+        # SAVE FRAMES
         with open(frames_path, "wb") as data_file:
             for f in range(len(data_frames)):
                 data = data_frames[f]
@@ -136,7 +140,23 @@ def main():
                 buffering = (ctypes.c_ubyte * size).from_address(data_address)
                 data_file.write(buffering)
         
-        # Save mouse events
+        # SAVE IMAGES
+        for i in range(len(frames)):
+            
+            if frames[i].images[0].is_valid:
+                image = frames[i].images[0]
+                i_address = image.data_pointer
+                ctype_array_def = ctypes.c_ubyte * image.height * image.width
+                # as ctypes array
+                as_ctype_array = ctype_array_def.from_address(int(i_address))
+                # as numpy array
+                as_numpy_array = np.ctypeslib.as_array(as_ctype_array)
+                img = np.reshape(as_numpy_array, (image.height, image.width))
+                
+                images_path = directory + "/image_" + str(i).zfill(5) + ".png"
+                cv2.imwrite(images_path,img)
+        
+        # SAVE MOUSE EVENTS
         f = open(pressed_path, "w")
         for p in pressed_moments:
             f.write("%s\n" % p)

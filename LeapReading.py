@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import Leap, struct, ctypes
+import Leap
+import struct
+import ctypes
 
 frames = []
+images = []
 
 def main():
     controller = Leap.Controller()
+    controller.set_policy(Leap.Controller.POLICY_IMAGES)
     
     with open("savedframes.data", "rb") as data_file:
         next_block_size = data_file.read(4)
@@ -15,14 +19,18 @@ def main():
             leap_byte_array = Leap.byte_array(size)
             address = leap_byte_array.cast().__long__()
             ctypes.memmove(address, data, size)
-            print("Block read")
             
             frame = Leap.Frame()
             frame.deserialize((leap_byte_array, size))
             next_block_size = data_file.read(4)
             frames.append(frame)
+            image = frame.images[0]
             
-                        
-            
+            """            
+            for hand in frame.hands:
+                for finger in hand.fingers:
+                    if finger.type == 1:
+                        print("Index position: " + str(finger.tip_position))"""
+                                
 if __name__ == "__main__":
     main()
