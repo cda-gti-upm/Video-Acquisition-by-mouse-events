@@ -8,7 +8,6 @@ Created on Mon Oct  8 12:59:32 2018
 import os
 import numpy as np
 import Leap
-import shutil
 import struct
 import ctypes
 
@@ -68,8 +67,7 @@ def main():
             for l in index:
                 
                 if l<len(changes):
-                    
-                    order = np.arange(changes[l],changes[l+1])
+
                     traj = pos[changes[l]:changes[l+1]]
                     proc_rep_path = os.path.join(proc_gest_path, "rep_"+str(repetition).zfill(3))
                     
@@ -81,11 +79,6 @@ def main():
                     with open(traj_proc, 'w') as f:
                         for item in traj:
                             f.write("%s\n" % item)
-                    
-                    for k in range(len(order)):
-                        img_orig = os.path.join(orig_user_path, "image_"+str(order[k]).zfill(5)+".png")
-                        img_proc = os.path.join(proc_rep_path, "image_"+str(k).zfill(3)+".png")
-                        shutil.copy(img_orig, img_proc)
         
                     repetition = repetition + 1
           
